@@ -1,0 +1,10 @@
+node_modules
+tiles
+test
+.git
+*.swp
+Dockerfile
+.dockerignore
+.editorconfig
+.eslintrc
+.gitignore
