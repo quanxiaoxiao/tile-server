@@ -33,8 +33,9 @@ const server = http.createServer((req, res) => {
         .createReadStream(tilePathname)
         .pipe(res);
     } else {
-      res.writeHead(404);
-      res.end();
+      fs
+        .createReadStream(config.tilePurePathname)
+        .pipe(res);
     }
   }
 });
