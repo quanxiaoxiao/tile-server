@@ -7,6 +7,8 @@ const config = require('./config');
 
 const now = Date.now();
 
+const pureTileBuf = fs.readFileSync(config.tilePurePathname);
+
 const server = http.createServer((req, res) => {
   if (req.method !== 'GET') {
     res.setHeader(405);
@@ -33,9 +35,7 @@ const server = http.createServer((req, res) => {
         .createReadStream(tilePathname)
         .pipe(res);
     } else {
-      fs
-        .createReadStream(config.tilePurePathname)
-        .pipe(res);
+      res.end(pureTileBuf);
     }
   }
 });
