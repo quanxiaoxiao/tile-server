@@ -1,12 +1,17 @@
-FROM node:14.16.0-alpine
+FROM node:14.15.0-alpine
 
-WORKDIR /tile-server
+WORKDIR /app
 
 COPY package.json .
 
+COPY npm.taobao.sh .
+RUN ./npm.taobao.sh
+
+RUN npm install --production
+
 COPY . .
 
-ENV PORT=4000
+ENV PORT=3000
 
 EXPOSE $PORT
 

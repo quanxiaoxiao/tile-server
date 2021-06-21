@@ -3,13 +3,15 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const url = require('url');
+const _ = require('lodash');
+const shelljs = require('shelljs');
+const FileType = require('file-type');
+const { fetchData } = require('@quanxiaoxiao/about-http');
 const config = require('./config');
 
 const now = Date.now();
 
-const pureTileBuf = fs.readFileSync(config.tilePurePathname);
-
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.method !== 'GET') {
     res.setHeader(405);
     req.end();
@@ -35,7 +37,30 @@ const server = http.createServer((req, res) => {
         .createReadStream(tilePathname)
         .pipe(res);
     } else {
-      res.end(pureTileBuf);
+      const [z, x, y] = routeList;
+      try {
+        const buf = await fetchData({
+          url: `http://webrd${['01', '02', '03', '04'][_.random([0, 4])]}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=${x}&y=${y}&z=${z}`,
+          headers: {
+            'User-Agent': `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/${Math.random() * 100}`,
+          },
+        });
+        const fileType = await FileType.fromBuffer(buf);
+        if (fileType && /^image\//.test(fileType.mime)) {
+          const dirname = path.dirname(tilePathname);
+          if (!shelljs.test('-d', dirname)) {
+            shelljs.mkdir('-p', dirname);
+          }
+          fs.writeFileSync(tilePathname, buf);
+          res.end(buf);
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      } catch (error) {
+        res.writeHead(404);
+        res.end();
+      }
     }
   }
 });

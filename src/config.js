@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  port: 4000,
+  port: 3000,
   tilePath: path.resolve(__dirname, '..', 'tiles'),
-  tilePurePathname: path.resolve(__dirname, '..', 'tiles', 'pure'),
+  // tilePath: path.resolve(os.homedir(), 'run', 'tile-server', 'tiles'),
 };
