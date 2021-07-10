@@ -9,7 +9,9 @@ const FileType = require('file-type');
 const { fetchData } = require('@quanxiaoxiao/about-http');
 const config = require('./config');
 
-const now = Date.now();
+const startOf = Date.now();
+
+const tileProvider = (x, y, z) => `http://webrd${['01', '02', '03', '04'][_.random([0, 4])]}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=${x}&y=${y}&z=${z}`;
 
 const server = http.createServer(async (req, res) => {
   if (req.method !== 'GET') {
@@ -27,7 +29,7 @@ const server = http.createServer(async (req, res) => {
     const routeList = [RegExp.$1, RegExp.$2, RegExp.$3];
     const tilePathname = path.join(config.tilePath, ...routeList);
     const match = req.headers['if-none-match'];
-    const hash = crypto.createHash('sha1').update(`${now}_${routeList.join('/')}`).digest('hex');
+    const hash = crypto.createHash('sha1').update(`${startOf}_${routeList.join('/')}`).digest('hex');
     if (match === hash) {
       res.writeHead(304);
       res.end();
@@ -40,7 +42,7 @@ const server = http.createServer(async (req, res) => {
       const [z, x, y] = routeList;
       try {
         const buf = await fetchData({
-          url: `http://webrd${['01', '02', '03', '04'][_.random([0, 4])]}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=${x}&y=${y}&z=${z}`,
+          url: tileProvider(x, y, z),
           headers: {
             'User-Agent': `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/${Math.random() * 100}`,
           },
@@ -52,6 +54,7 @@ const server = http.createServer(async (req, res) => {
             shelljs.mkdir('-p', dirname);
           }
           fs.writeFileSync(tilePathname, buf);
+          res.setHeader('etag', hash);
           res.end(buf);
         } else {
           res.writeHead(404);
